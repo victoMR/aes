@@ -42,11 +42,6 @@ router.post('/decrypt', (req, res) => {
 
 
 
-
-
-const sign =  crypto.createSign('sha256');
-
-
 router.get('/getkeys', (req, res) => {
   const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
     namedCurve: 'secp256k1',
@@ -61,7 +56,7 @@ router.get('/getkeys', (req, res) => {
 
 router.post('/encrypt-ecc', (req, res) => {
   const data  = req.body
-
+  const sign =  crypto.createSign('sha256');
   sign.write(data.mensaje);
   sign.end();
   var signature = sign.sign(data.privateKey, 'hex');
@@ -71,6 +66,7 @@ router.post('/encrypt-ecc', (req, res) => {
   })
 });
 
+
 router.post('/verify-ecc', (req, res) => {
   const data = req.body
 
@@ -79,6 +75,8 @@ router.post('/verify-ecc', (req, res) => {
   verify.end();
 
   res.json({
+
+
     'verify': verify.verify(data.publicKey, data.signature, 'hex')
   });
 });
