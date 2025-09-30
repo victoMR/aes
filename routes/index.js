@@ -37,4 +37,50 @@ router.post('/decrypt', (req, res) => {
 })
 
 
+
+
+
+
+
+
+
+const sign =  crypto.createSign('sha256');
+
+
+router.get('/getkeys', (req, res) => {
+  const { privateKey, publicKey } = crypto.generateKeyPairSync('ec', {
+    namedCurve: 'secp256k1',
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  });
+  res.json({
+    'privateKey': privateKey.toString('hex'),
+    'publicKey': publicKey.toString('hex'),
+  })
+});
+
+router.post('/encrypt-ecc', (req, res) => {
+  const data  = req.body
+
+  sign.write(data.mensaje);
+  sign.end();
+  var signature = sign.sign(data.privateKey, 'hex');
+
+  res.json({
+    'mensaje-cifrado': signature.toString('hex')
+  })
+});
+
+router.post('/verify-ecc', (req, res) => {
+  const data = req.body
+
+  const verify = crypto.createVerify('sha256');
+  verify.write(data.mensaje);
+  verify.end();
+
+  res.json({
+    'verify': verify.verify(data.publicKey, data.signature, 'hex')
+  });
+});
+
 module.exports = router;
