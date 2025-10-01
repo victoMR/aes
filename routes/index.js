@@ -81,4 +81,126 @@ router.post('/verify-ecc', (req, res) => {
   });
 });
 
+
+router.post('/encrypt-decrypt', (req, res) => {
+
+    const data  = req.body
+
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+
+    const encryptedData = crypto.publicEncrypt(
+        {
+            key: publicKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: "sha256",
+        },
+
+        Buffer.from(data.mensaje)
+    );
+
+    const decryptedData = crypto.privateDecrypt(
+        {
+            key: privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: "sha256",
+        },
+        encryptedData
+    );
+
+    res.json({
+        'encrypt': encryptedData.toString("base64"),
+        'decrypt': decryptedData.toString(),
+        'privateKey':privateKey,
+        'publicKey':publicKey
+    })
+});
+
+
+router.get('/getkeys-rsa', (req, res) => {
+
+    const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
+        modulusLength: 2048,
+        publicKeyEncoding: { type: 'spki', format: 'pem' },
+        privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+    });
+
+    res.json({
+        'privateKey':privateKey,
+        'publicKey':publicKey
+    })
+});
+
+router.post('/encrypt-rsa', (req, res) => {
+    const data  = req.body
+
+    const encryptedData = crypto.publicEncrypt(
+        {
+            key: data.publicKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: "sha256",
+        },
+
+        Buffer.from(data.mensaje)
+    );
+
+    res.json({
+        'mensaje-cifrado': encryptedData.toString("base64")
+    })
+});
+
+
+
+router.post('/decrypt-rsa', (req, res) => {
+    const data = req.body
+
+    const decryptedData = crypto.publicDecrypt(
+        {
+            key: data.privateKey,
+            padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+            oaepHash: "sha256",
+        },
+        data.encrypt
+    );
+
+    res.json({
+        'mensaje': decryptedData.toString()
+    });
+});
+
+
+router.post('/firmado-rsa', (req, res) => {
+    const data  = req.body
+
+
+    const signature = crypto.sign("sha256", Buffer.from(data.mensaje), {
+        key: data.privateKey,
+        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+    });
+
+    res.json({
+        'mensaje-firmado': signature.toString("base64")
+    })
+});
+
+router.post('/verify-rsa', (req, res) => {
+    const data  = req.body
+    res.json({
+        'mensaje-cifrado': crypto.verify(
+            "sha256",
+            Buffer.from(data.mensaje),
+            {
+                key: data.publicKey,
+                padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+            },
+            data.signature
+        )
+    })
+});
+
+
+
 module.exports = router;
