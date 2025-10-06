@@ -54,7 +54,7 @@ router.get('/getkeys', (req, res) => {
   })
 });
 
-router.post('/encrypt-ecc', (req, res) => {
+router.post('/sign-ecc', (req, res) => {
   const data  = req.body
   const sign =  crypto.createSign('sha256');
   sign.write(data.mensaje);
