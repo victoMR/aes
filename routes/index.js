@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
+
 router.use(express.json());
 const key = crypto.randomBytes(32); // Genera una clave de 32 bytes (256 bits)
 const iv = crypto.randomBytes(16);  // Genera un IV de 16 bytes
@@ -187,7 +189,7 @@ router.post('/firmado-rsa', (req, res) => {
 });
 
 router.post('/verify-rsa', (req, res) => {
-    const data  = req.body
+    const data  = req.body;
     res.json({
         'mensaje-cifrado': crypto.verify(
             "sha256",
@@ -201,6 +203,45 @@ router.post('/verify-rsa', (req, res) => {
     })
 });
 
+router.post('/hash', (req, res) => {
+    const data  = req.body;
+    const crypto = require('crypto');
+
+    const hash = crypto.createHash('sha512');
+
+    hash.update(data.mensaje);
+
+    const hashedData = hash.digest('hex');
+    res.json({
+        'hash256': hashedData
+    })
+});
+
+router.post('/bcrypt', (req, res) => {
+    const data  = req.body;
+
+
+    const saltRounds = 12; // Recommended value between 10 and 12 for security vs. performance
+
+    const plainPassword = data.mensaje;
+
+    bcrypt.genSalt(saltRounds, (err, salt) => {
+        if (err) {
+            console.error('Error salt:', err);
+            return;
+        }
+
+        bcrypt.hash(plainPassword, salt, (err, hash) => {
+            if (err) {
+                console.error('Error:', err);
+                return;
+            }
+            res.json({
+                'hash': hash
+            })
+        });
+    });
+});
 
 
 module.exports = router;
