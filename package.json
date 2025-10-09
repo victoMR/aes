@@ -6,7 +6,8 @@
     "start": "node ./bin/www",
     "build": "babel ./bin/www -d dist",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "start-dev": "npm run lint && npm run start"
   },
   "dependencies": {
     "and": "^0.0.3",
